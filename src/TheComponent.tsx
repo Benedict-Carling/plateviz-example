@@ -16,6 +16,31 @@ const sizeToSpaceRatio = 1.5;
 
 const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
+const COLORS: Array<string> = [
+  "#f44336",
+  "#e91e63",
+  "#9c27b0",
+  "#673ab7",
+  "#3f51b5",
+  "#2196f3",
+  "#03a9f4",
+  "#00bcd4",
+  "#009688",
+  "#4caf50",
+  "#8bc34a",
+  "#cddc39",
+  "#ffeb3b",
+  "#ffc107",
+  "#ff9800",
+  "#ff5722",
+  "#795548",
+  "#607d8b",
+];
+
+const randomItemInArray = (array: Array<any>) => {
+  return array[(array.length * Math.random()) | 0];
+};
+
 export interface ReagentInterface {
   Id?: string;
   Name?: string;
@@ -59,9 +84,9 @@ const Plate: React.FC<{ plate: PlateInterface }> = ({ plate }) => {
     "well"
   );
   const [clickedWell, setClickedWell] = useState<string>("A1");
-  const [clickedIndex, setClickedIndex] = useState<Number>(0);
+  const [clickedIndex, setClickedIndex] = useState<number>(0);
   const [visibleReagents, setVisableReagents] = useState<{
-    [liquid: string]: Boolean;
+    [liquid: string]: boolean;
   }>(
     Object.fromEntries(
       new Map(plate.Reagents?.map((item) => [item.Name, true]))
@@ -69,11 +94,10 @@ const Plate: React.FC<{ plate: PlateInterface }> = ({ plate }) => {
   );
 
   const onDeleteReagent = (deletedReagent: string | undefined) => {
-    if (typeof deletedReagent === "string") {
-      const previous = visibleReagents[deletedReagent];
+    if (deletedReagent) {
       setVisableReagents((C) => ({
         ...C,
-        [deletedReagent]: !previous,
+        [deletedReagent]: !C[deletedReagent],
       }));
     }
   };
@@ -82,52 +106,47 @@ const Plate: React.FC<{ plate: PlateInterface }> = ({ plate }) => {
   const Columns = Number(plate.Columns);
   const Rows = Number(plate.Rows);
 
-  const COLOR_REAGENT_MAP = new Map();
+  const COLOR_REAGENT_MAP = new Map<string, string>();
   plate.Reagents?.map((reagent) => {
-    COLOR_REAGENT_MAP.set(reagent.Name, reagent.Color);
-  });
-
-  const INDEX_WELL_MAP = (index: any) => {
-    var column = index % Columns;
-    var row = Math.ceil((index + 1) / Columns);
-    row === 0 ? (row = 1) : (row = row);
-    setClickedWell(String(letters[row - 1]) + String(column + 1));
-  };
-
-  const blendedColors = plate.Wells?.map((well) => {
-    if (well.Reagents) {
-      const colors_in_well: Array<string> = well.Reagents.map((reagent) =>
-        COLOR_REAGENT_MAP.get(reagent.Name)
+    if (reagent.Name) {
+      COLOR_REAGENT_MAP.set(
+        reagent.Name,
+        reagent.Color ?? randomItemInArray(COLORS)
       );
-      const colors_to_remove = Object.entries(visibleReagents)
-        .filter((i) => !i[1])
-        .map((i) => COLOR_REAGENT_MAP.get(i[0]));
-      console.log("to rmove", colors_to_remove);
-      console.log("in well", colors_in_well);
-      const colors_in_well_filtered = colors_in_well.filter((i) => {
-        console.log(i);
-        console.log("thing", colors_to_remove.includes(i));
-        return !colors_to_remove.includes(i);
-      });
-      console.log("filtered", colors_in_well_filtered);
-      if (colors_in_well_filtered.length === 0) {
-        return "#ced8db";
-      }
-      if (well.Reagents?.length === 1) {
-        return colors_in_well_filtered[0];
-      }
-      const tinycolors = colors_in_well_filtered.map((color: string) => {
-        const mytinycolor = tinycolor(color);
-        mytinycolor.setAlpha(0.5);
-        return mytinycolor.toRgb();
-      });
-      const blendedColor = tinycolor(tinycolors.reduce(colorReducer));
-      blendedColor.setAlpha(1);
-      return blendedColor.toHexString();
     }
   });
-  console.log(blendedColors);
-  console.log(visibleReagents);
+
+  const blendedColors = plate.Wells?.map((well) => {
+    const colors_in_well: Array<string | undefined> =
+      well.Reagents?.map((reagent) => {
+        if (reagent.Name) {
+          if (COLOR_REAGENT_MAP.has(reagent.Name)) {
+            return COLOR_REAGENT_MAP.get(reagent.Name);
+          }
+        }
+        return undefined;
+      }) ?? [];
+    const colors_to_remove = Object.entries(visibleReagents)
+      .filter((i) => !i[1])
+      .map((i) => COLOR_REAGENT_MAP.get(i[0]));
+    const colors_in_well_filtered = colors_in_well.filter((i) => {
+      return !colors_to_remove.includes(i);
+    });
+    if (colors_in_well_filtered.length === 0) {
+      return "#ced8db";
+    }
+    if (colors_in_well_filtered.length === 1) {
+      return colors_in_well_filtered[0];
+    }
+    const tinycolors = colors_in_well_filtered.map((color) => {
+      const mytinycolor = tinycolor(color);
+      mytinycolor.setAlpha(0.5);
+      return mytinycolor.toRgb();
+    });
+    const blendedColor = tinycolor(tinycolors.reduce(colorReducer));
+    blendedColor.setAlpha(1);
+    return blendedColor.toHexString();
+  });
 
   const CircleSpacing = Width / (2.5 * Columns);
   const CircleSize = CircleSpacing * 1.5;
