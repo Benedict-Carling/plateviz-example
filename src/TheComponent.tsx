@@ -229,33 +229,29 @@ const Plate: React.FC<{ plate: PlateInterface }> = ({ plate }) => {
                 {clickedWell}
               </Typography>
               <Typography variant="body1" color="textSecondary">
-                {plate.Wells && plate.Volume_unit ? (
-                  plate.Wells[Number(clickedIndex)] ? (
-                    <>
-                      <div>
-                        Filled Volume -{" "}
-                        {plate.Wells[Number(clickedIndex)].Filled_volume +
-                          plate.Volume_unit}
-                      </div>
-                      <div>
-                        Max Volume -{" "}
-                        {plate.Wells[Number(clickedIndex)].Max_volume +
-                          plate.Volume_unit}
-                      </div>
-                      <div>
-                        Dead Volume -{" "}
-                        {plate.Wells[Number(clickedIndex)].Dead_volume +
-                          plate.Volume_unit}
-                      </div>
-                      <div>
-                        Working Volume -{" "}
-                        {plate.Wells[Number(clickedIndex)].Working_volume +
-                          plate.Volume_unit}
-                      </div>
-                    </>
-                  ) : (
-                    <></>
-                  )
+                {plate.Wells?.[Number(clickedIndex)] ? (
+                  <>
+                    <div>
+                      Filled Volume -{" "}
+                      {plate.Wells[Number(clickedIndex)].Filled_volume +
+                        (plate.Volume_unit ?? "au")}
+                    </div>
+                    <div>
+                      Max Volume -{" "}
+                      {plate.Wells[Number(clickedIndex)].Max_volume +
+                        (plate.Volume_unit ?? "au")}
+                    </div>
+                    <div>
+                      Dead Volume -{" "}
+                      {plate.Wells[Number(clickedIndex)].Dead_volume +
+                        (plate.Volume_unit ?? "au")}
+                    </div>
+                    <div>
+                      Working Volume -{" "}
+                      {plate.Wells[Number(clickedIndex)].Working_volume +
+                        (plate.Volume_unit ?? "au")}
+                    </div>
+                  </>
                 ) : (
                   <></>
                 )}
@@ -265,27 +261,14 @@ const Plate: React.FC<{ plate: PlateInterface }> = ({ plate }) => {
                 {"Contents"}
               </Typography>
               <Typography variant="body1" color="textSecondary">
-                {plate.Wells ? (
-                  plate.Wells[Number(clickedIndex)] ? (
-                    plate.Wells[Number(clickedIndex)].Reagents ? (
-                      plate.Wells[Number(clickedIndex)].Reagents?.map(
-                        (reagent) => {
-                          return (
-                            <div>
-                              {reagent.Name} - {reagent.Volume}{" "}
-                              {plate.Volume_unit}
-                            </div>
-                          );
-                        }
-                      )
-                    ) : (
-                      <></>
-                    )
-                  ) : (
-                    <></>
-                  )
-                ) : (
-                  <></>
+                {plate.Wells?.[Number(clickedIndex)]?.Reagents?.map(
+                  (reagent) => {
+                    return (
+                      <div>
+                        {reagent.Name} - {reagent.Volume} {plate.Volume_unit}
+                      </div>
+                    );
+                  }
                 )}
               </Typography>
             </>
@@ -295,34 +278,30 @@ const Plate: React.FC<{ plate: PlateInterface }> = ({ plate }) => {
                 {"Reagents"}
               </Typography>
               <Typography variant="body1" color="textSecondary">
-                {plate.Reagents ? (
-                  plate.Reagents.map((liquid) => {
-                    return (
-                      <div style={{ paddingTop: "10px" }}>
-                        <Chip
-                          style={{
-                            backgroundColor: liquid.Color,
-                          }}
-                          label={liquid.Name}
-                          deleteIcon={
-                            visibleReagents[
-                              liquid.Name as keyof typeof visibleReagents
-                            ] ? (
-                              <VisibilityIcon />
-                            ) : (
-                              <VisibilityOffIcon />
-                            )
-                          }
-                          onDelete={() => {
-                            onDeleteReagent(liquid.Name);
-                          }}
-                        />
-                      </div>
-                    );
-                  })
-                ) : (
-                  <></>
-                )}
+                {plate.Reagents?.map((liquid) => {
+                  return (
+                    <div style={{ paddingTop: "10px" }}>
+                      <Chip
+                        style={{
+                          backgroundColor: liquid.Color,
+                        }}
+                        label={liquid.Name}
+                        deleteIcon={
+                          visibleReagents[
+                            liquid.Name as keyof typeof visibleReagents
+                          ] ? (
+                            <VisibilityIcon />
+                          ) : (
+                            <VisibilityOffIcon />
+                          )
+                        }
+                        onDelete={() => {
+                          onDeleteReagent(liquid.Name);
+                        }}
+                      />
+                    </div>
+                  );
+                })}
               </Typography>
             </>
           )}
