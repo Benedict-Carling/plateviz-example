@@ -18,6 +18,7 @@ import CardContent from "@material-ui/core/CardContent";
 import Chip from "@material-ui/core/Chip";
 import Plate from "./TheComponent";
 import plate96 from "./plate96";
+import plate96organised from "./plate96organised";
 
 export interface ReagentInterface {
   Id?: string;
@@ -249,7 +250,7 @@ const examplePlate: PlateInterface = {
 
 ReactDOM.render(
   <div>
-    <Plate plate={plate96} />
+    <Plate plate={plate96organised} />
   </div>,
   document.getElementById("root")
 );

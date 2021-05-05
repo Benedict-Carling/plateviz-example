@@ -8,9 +8,44 @@ import Chip from "@material-ui/core/Chip";
 import tinycolor from "tinycolor2";
 import { normal } from "color-blend";
 import { RGBA } from "color-blend/dist/types";
+import { TwitterPicker } from "react-color";
+import reactCSS from "reactcss";
 // ICONS
 import VisibilityIcon from "@material-ui/icons/Visibility";
 import VisibilityOffIcon from "@material-ui/icons/VisibilityOff";
+
+const absolute: "absolute" = "absolute";
+const zIndex2: 2 = 2;
+
+const styles = reactCSS({
+  default: {
+    color: {
+      width: "36px",
+      height: "14px",
+      borderRadius: "2px",
+      //background: `rgba(${this.state.color.r}, ${this.state.color.g}, ${this.state.color.b}, ${this.state.color.a})`,
+    },
+    swatch: {
+      padding: "5px",
+      background: "#fff",
+      borderRadius: "1px",
+      boxShadow: "0 0 0 1px rgba(0,0,0,.1)",
+      display: "inline-block",
+      cursor: "pointer",
+    },
+    popover: {
+      position: absolute,
+      zIndex: zIndex2,
+    },
+    cover: {
+      position: "fixed" as "fixed",
+      top: "0px",
+      right: "0px",
+      bottom: "0px",
+      left: "0px",
+    },
+  },
+});
 
 const sizeToSpaceRatio = 1.5;
 
@@ -92,6 +127,13 @@ const Plate: React.FC<{ plate: PlateInterface }> = ({ plate }) => {
       new Map(plate.Reagents?.map((item) => [item.Name, true]))
     )
   );
+  const [visibleColor, setVisableColor] = useState<{
+    [liquid: string]: boolean;
+  }>(
+    Object.fromEntries(
+      new Map(plate.Reagents?.map((item) => [item.Name, false]))
+    )
+  );
 
   const onDeleteReagent = (deletedReagent: string | undefined) => {
     if (deletedReagent) {
@@ -100,6 +142,25 @@ const Plate: React.FC<{ plate: PlateInterface }> = ({ plate }) => {
         [deletedReagent]: !C[deletedReagent],
       }));
     }
+  };
+
+  const onClickReagent = (
+    clickedReagent: string | undefined,
+    open: boolean
+  ) => {
+    if (clickedReagent) {
+      setVisableColor((C) => ({
+        ...C,
+        [clickedReagent]: open,
+      }));
+    }
+  };
+
+  const handleColorChange = (color: string, liquidName: string) => {
+    const index = plate?.Reagents?.map((e) => e.Name).indexOf(liquidName);
+    if (index && plate.Reagents?.[index]?.Color)
+      //plate.Reagents?.[index]?.Color = color;
+      var hi = null;
   };
 
   const Width = 600;
@@ -280,26 +341,52 @@ const Plate: React.FC<{ plate: PlateInterface }> = ({ plate }) => {
               <Typography variant="body1" color="textSecondary">
                 {plate.Reagents?.map((liquid) => {
                   return (
-                    <div style={{ paddingTop: "10px" }}>
-                      <Chip
-                        style={{
-                          backgroundColor: liquid.Color,
-                        }}
-                        label={liquid.Name}
-                        deleteIcon={
-                          visibleReagents[
-                            liquid.Name as keyof typeof visibleReagents
-                          ] ? (
-                            <VisibilityIcon />
-                          ) : (
-                            <VisibilityOffIcon />
-                          )
-                        }
-                        onDelete={() => {
-                          onDeleteReagent(liquid.Name);
-                        }}
-                      />
-                    </div>
+                    <>
+                      <div style={{ paddingTop: "10px" }}>
+                        <Chip
+                          style={{
+                            backgroundColor: liquid.Color,
+                          }}
+                          label={liquid.Name}
+                          clickable
+                          onClick={() => {
+                            onClickReagent(liquid.Name, true);
+                          }}
+                          deleteIcon={
+                            visibleReagents[
+                              liquid.Name as keyof typeof visibleReagents
+                            ] ? (
+                              <VisibilityIcon />
+                            ) : (
+                              <VisibilityOffIcon />
+                            )
+                          }
+                          onDelete={() => {
+                            onDeleteReagent(liquid.Name);
+                          }}
+                        />
+                      </div>
+                      {visibleColor[
+                        liquid.Name as keyof typeof visibleReagents
+                      ] ? (
+                        <div style={styles.popover}>
+                          <div
+                            style={styles.cover}
+                            onClick={() => {
+                              onClickReagent(liquid.Name, false);
+                            }}
+                          />
+                          <TwitterPicker
+                            color={liquid.Color}
+                            onChange={(color) => {
+                              //handleColorChange(color , liquid.Name);
+                            }}
+                          />
+                        </div>
+                      ) : (
+                        <></>
+                      )}
+                    </>
                   );
                 })}
               </Typography>
